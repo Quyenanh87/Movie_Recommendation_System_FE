@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.bg-movie-bg {
+  background:
+    radial-gradient(circle at 60% 20%, rgba(255,214,0,0.08) 0, rgba(255,214,0,0.01) 40%, transparent 70%),
+    linear-gradient(120deg, #232526 0%, #414345 100%),
+    url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=1500&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  position: relative;
+}
+
+.font-movie-title {
+  font-family: 'Bebas Neue', 'Montserrat', Arial, sans-serif;
+  letter-spacing: 2px;
+}
+
+.font-movie-section {
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 700;
+}

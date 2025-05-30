@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { fetchPosterUrl } from '../utils/fetchPoster';
+import { fetchMovieInfo } from '../utils/fetchPoster';
 
 function ResultsPage() {
   const location = useLocation();
@@ -35,8 +35,8 @@ function ResultsPage() {
         const posterMap = {};
 
         for (const movie of allMovies) {
-          const posterUrl = await fetchPosterUrl(movie);
-          posterMap[movie] = posterUrl;
+          const info = await fetchMovieInfo(movie);
+          posterMap[movie] = info.poster;
         }
 
         setPosters(posterMap);

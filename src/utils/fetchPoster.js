@@ -5,7 +5,20 @@ function cleanTitle(title) {
   return title.replace(/\s*\(\d{4}\)/, '').trim();
 }
 
-export async function fetchPosterUrl(movieTitle) {
+// Lấy danh sách genres từ TMDB (có thể cache lại)
+let genreMap = null;
+async function getGenreMap() {
+  if (genreMap) return genreMap;
+  const res = await fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}&language=en-US`);
+  const data = await res.json();
+  genreMap = {};
+  if (data.genres) {
+    data.genres.forEach(g => { genreMap[g.id] = g.name; });
+  }
+  return genreMap;
+}
+
+export async function fetchMovieInfo(movieTitle) {
   const clean = cleanTitle(movieTitle);
   const query = encodeURIComponent(clean);
 
@@ -15,11 +28,19 @@ export async function fetchPosterUrl(movieTitle) {
   const data = await res.json();
 
   if (data.results && data.results.length > 0) {
-    const posterPath = data.results[0].poster_path;
-    if (posterPath) {
-      return `https://image.tmdb.org/t/p/w500${posterPath}`;
-    }
+    const m = data.results[0];
+    const poster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://placehold.co/300x450?text=No+Poster&font=roboto';
+    const rating = m.vote_average || null;
+    const year = m.release_date ? m.release_date.slice(0, 4) : null;
+    const genreIds = m.genre_ids || [];
+    const country = m.original_language ? m.original_language.toUpperCase() : null;
+    const overview = m.overview || '';
+    const genres = [];
+    const genreMap = await getGenreMap();
+    genreIds.forEach(id => { if (genreMap[id]) genres.push(genreMap[id]); });
+    return { poster, rating, genres, year, country, overview };
   }
 
-  return null;
+  // Trả về placeholder nếu không có
+  return { poster: 'https://placehold.co/300x450?text=No+Poster&font=roboto', rating: null, genres: [], year: null, country: null, overview: '' };
 }
