@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaFilm } from 'react-icons/fa';
+import { FaFilm, FaHeart, FaFire, FaClock } from 'react-icons/fa';
 import MovieGridCarousel from '../components/MovieGridCarousel';
 
 function Spinner() {
@@ -134,15 +134,32 @@ function HomePage() {
       if (filter.year) url += `&primary_release_year=${filter.year}`;
       if (filter.country) url += `&with_origin_country=${filter.country}`;
       if (filter.rating) url += `&vote_average.gte=${filter.rating}`;
+      
       const res = await fetch(url);
       const data = await res.json();
-      const fetchMovieInfo = (await import('../utils/fetchPoster')).fetchMovieInfo;
-      const moviesInfo = await Promise.all((data.results || []).slice(0, 15).map(m => fetchMovieInfo(m.title)));
-      setRecommended(moviesInfo);
-      setHotMovies([]);
-      setRecentMovies([]);
+      
+      if (!data.results || data.results.length === 0) {
+        // Không có kết quả -> set tất cả về rỗng
+        setRecommended([]);
+        setHotMovies([]);
+        setRecentMovies([]);
+      } else {
+        const fetchMovieInfo = (await import('../utils/fetchPoster')).fetchMovieInfo;
+        const moviesInfo = await Promise.all((data.results || []).slice(0, 15).map(m => fetchMovieInfo(m.title)));
+        // Lọc ra những phim thực sự thuộc quốc gia đã chọn (nếu có filter country)
+        const filteredMovies = filter.country 
+          ? moviesInfo.filter(m => m.country === filter.country.toUpperCase())
+          : moviesInfo;
+        
+        setRecommended(filteredMovies);
+        setHotMovies([]);
+        setRecentMovies([]);
+      }
     } catch (e) {
       console.error(e);
+      setRecommended([]);
+      setHotMovies([]);
+      setRecentMovies([]);
     } finally {
       setIsLoading(false);
     }
@@ -204,26 +221,37 @@ function HomePage() {
           <Spinner />
         ) : (
           <>
-            {recommended.length === 0 ? (
-              <div className="text-center text-yellow-300 font-bold text-lg py-10">Không tìm thấy film nào phù hợp.</div>
+            {recommended.length === 0 && hotMovies.length === 0 && recentMovies.length === 0 ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="text-yellow-400 text-xl font-semibold">
+                  Không có film nào phù hợp với bộ lọc đã chọn
+                </div>
+              </div>
             ) : (
-              <MovieGridCarousel
-                title={`Gợi ý từ mô hình ${selectedModel}`}
-                movies={recommended}
-                icon={<span className="inline-block">🎯</span>}
-              />
+              <>
+                {recommended.length > 0 && (
+                  <MovieGridCarousel
+                    title={`Gợi ý từ mô hình ${selectedModel}`}
+                    movies={recommended}
+                    icon={<FaHeart />}
+                  />
+                )}
+                {hotMovies.length > 0 && (
+                  <MovieGridCarousel
+                    title="Phim nổi bật"
+                    movies={hotMovies}
+                    icon={<FaFire />}
+                  />
+                )}
+                {recentMovies.length > 0 && (
+                  <MovieGridCarousel
+                    title="Phim đã xem"
+                    movies={recentMovies}
+                    icon={<FaClock />}
+                  />
+                )}
+              </>
             )}
-            <MovieGridCarousel
-              title="Phim nổi bật"
-              movies={hotMovies}
-              icon={<span className="inline-block">🔥</span>}
-              autoSlide={true}
-            />
-            <MovieGridCarousel
-              title="Bạn đã xem gần đây"
-              movies={recentMovies}
-              icon={<span className="inline-block">📺</span>}
-            />
           </>
         )}
       </div>
