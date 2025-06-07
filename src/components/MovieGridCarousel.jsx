@@ -57,7 +57,14 @@ async function getYouTubeTrailerId(movieTitle) {
 const MovieGridCarousel = ({ title, movies, icon, autoSlide = false }) => {
   const [page, setPage] = useState(0);
   const moviesPerPage = 5;
-  const totalPages = Math.ceil(movies?.length || 0 / moviesPerPage);
+  const totalMovies = movies?.length || 0;
+  
+  // Nếu có đúng 5 phim, chỉ có 1 trang
+  const totalPages = totalMovies === 5 ? 1 : Math.max(1, Math.ceil(totalMovies / moviesPerPage));
+  
+  // Disable auto-slide nếu chỉ có 1 trang
+  const shouldAutoSlide = autoSlide && totalPages > 1;
+  
   const trackRef = useRef(null);
   const navigate = useNavigate();
 
@@ -74,17 +81,20 @@ const MovieGridCarousel = ({ title, movies, icon, autoSlide = false }) => {
   const [modalGenres, setModalGenres] = useState([]);
 
   React.useEffect(() => {
-    if (!autoSlide || totalPages <= 1) return;
+    if (!shouldAutoSlide) return;
     const interval = setInterval(() => {
       setPage((prev) => (prev + 1) % totalPages);
     }, 3000);
     return () => clearInterval(interval);
-  }, [autoSlide, totalPages]);
+  }, [shouldAutoSlide, totalPages]);
 
   const handlePrev = () => {
+    if (totalPages <= 1) return; // Prevent navigation if only 1 page
     setPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
+
   const handleNext = () => {
+    if (totalPages <= 1) return; // Prevent navigation if only 1 page
     setPage((prev) => (prev + 1) % totalPages);
   };
 
@@ -155,7 +165,13 @@ const MovieGridCarousel = ({ title, movies, icon, autoSlide = false }) => {
 
   // Tạo mảng các trang
   const pages = React.useMemo(() => {
-    if (!Array.isArray(movies)) return [];
+    if (!Array.isArray(movies) || movies.length === 0) return [];
+    
+    // Nếu có đúng 5 phim hoặc ít hơn, chỉ tạo 1 trang
+    if (movies.length <= 5) {
+      return [movies];
+    }
+    
     return Array.from({ length: totalPages }, (_, i) =>
       movies.slice(i * moviesPerPage, i * moviesPerPage + moviesPerPage)
     );
@@ -168,14 +184,23 @@ const MovieGridCarousel = ({ title, movies, icon, autoSlide = false }) => {
         <h2 className="text-xl font-movie-section text-yellow-300 uppercase tracking-wider">{title || 'Không có tiêu đề'}</h2>
       </div>
       <div className="relative flex items-center">
-        {totalPages > 1 && (
-          <button
-            onClick={handlePrev}
-            className="absolute left-0 z-10 bg-black/60 text-yellow-300 p-2 rounded-full hover:bg-yellow-400 hover:text-black transition-all"
-            style={{ transform: 'translateY(-50%)', top: '50%' }}
-          >
-            <FaChevronLeft size={20} />
-          </button>
+        {totalPages > 1 && totalMovies > moviesPerPage && (
+          <>
+            <button
+              onClick={handlePrev}
+              className="absolute left-0 z-10 bg-black/60 text-yellow-300 p-2 rounded-full hover:bg-yellow-400 hover:text-black transition-all"
+              style={{ transform: 'translateY(-50%)', top: '50%' }}
+            >
+              <FaChevronLeft size={20} />
+            </button>
+            <button
+              onClick={handleNext}
+              className="absolute right-0 z-10 bg-black/60 text-yellow-300 p-2 rounded-full hover:bg-yellow-400 hover:text-black transition-all"
+              style={{ transform: 'translateY(-50%)', top: '50%' }}
+            >
+              <FaChevronRight size={20} />
+            </button>
+          </>
         )}
         <div className="w-full overflow-hidden">
           <div
@@ -257,15 +282,6 @@ const MovieGridCarousel = ({ title, movies, icon, autoSlide = false }) => {
             ))}
           </div>
         </div>
-        {totalPages > 1 && (
-          <button
-            onClick={handleNext}
-            className="absolute right-0 z-10 bg-black/60 text-yellow-300 p-2 rounded-full hover:bg-yellow-400 hover:text-black transition-all"
-            style={{ transform: 'translateY(-50%)', top: '50%' }}
-          >
-            <FaChevronRight size={20} />
-          </button>
-        )}
       </div>
       {totalPages > 1 && (
         <div className="flex justify-center mt-4 gap-2">

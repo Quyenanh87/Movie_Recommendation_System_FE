@@ -28,8 +28,8 @@ function HomePage() {
   const [filter, setFilter] = useState({ genre: '', year: '', country: '', rating: '' });
 
   const modelOptions = [
-    "CB_TF-IDF", "CB_TF-IDF-Ridge", "CB_TF-IDF-MLP", "CB_TF-IDF-AE",
-    "CB_BERT", "CF_kNN", "CF_NeuCF", "CF_VAE", "CF_LightGCN", "CF_Transformer"
+    "CB_TF-IDF", "CB_TF-IDF-Ridge", "CB_TF-IDF-MLP", 
+    "CB_BERT", "CF_USER", "CF_ITEM","CF_NeuMF","CF_VAE", "CF_LightGCN"
   ];
 
   useEffect(() => {
@@ -139,14 +139,12 @@ function HomePage() {
       const data = await res.json();
       
       if (!data.results || data.results.length === 0) {
-        // Không có kết quả -> set tất cả về rỗng
         setRecommended([]);
         setHotMovies([]);
         setRecentMovies([]);
       } else {
         const fetchMovieInfo = (await import('../utils/fetchPoster')).fetchMovieInfo;
         const moviesInfo = await Promise.all((data.results || []).slice(0, 15).map(m => fetchMovieInfo(m.title)));
-        // Lọc ra những phim thực sự thuộc quốc gia đã chọn (nếu có filter country)
         const filteredMovies = filter.country 
           ? moviesInfo.filter(m => m.country === filter.country.toUpperCase())
           : moviesInfo;
@@ -154,6 +152,7 @@ function HomePage() {
         setRecommended(filteredMovies);
         setHotMovies([]);
         setRecentMovies([]);
+        window.isFilterResult = true;
       }
     } catch (e) {
       console.error(e);
@@ -162,6 +161,21 @@ function HomePage() {
       setRecentMovies([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Reset lại khi chọn model
+  useEffect(() => {
+    window.isFilterResult = false;
+  }, [selectedModel]);
+
+  // Thêm hàm xử lý xóa bộ lọc
+  const handleClearFilter = () => {
+    setFilter({ genre: '', year: '', country: '', rating: '' });
+    window.isFilterResult = false;
+    // Tải lại dữ liệu ban đầu
+    if (userId) {
+      fetchAllData(parseInt(userId), selectedModel);
     }
   };
 
@@ -214,7 +228,22 @@ function HomePage() {
             <option value="">Điểm IMDb</option>
             {ratings.map(r => <option key={r} value={r}>{r}+</option>)}
           </select>
-          <button onClick={fetchFilteredMovies} className="bg-yellow-400 text-black px-4 py-2 rounded font-bold hover:bg-yellow-500 transition">Lọc phim</button>
+          <div className="flex gap-2">
+            <button 
+              onClick={fetchFilteredMovies} 
+              className="bg-yellow-400 text-black px-4 py-2 rounded font-bold hover:bg-yellow-500 transition"
+            >
+              Lọc phim
+            </button>
+            {window.isFilterResult && (
+              <button 
+                onClick={handleClearFilter}
+                className="bg-red-500 text-white px-4 py-2 rounded font-bold hover:bg-red-600 transition flex items-center gap-2"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
+          </div>
         </div>
         {/* Loading spinner hoặc grid phim */}
         {isLoading ? (
@@ -231,7 +260,7 @@ function HomePage() {
               <>
                 {recommended.length > 0 && (
                   <MovieGridCarousel
-                    title={`Gợi ý từ mô hình ${selectedModel}`}
+                    title={window.isFilterResult ? "Kết quả lọc phim" : `Gợi ý từ mô hình ${selectedModel}`}
                     movies={recommended}
                     icon={<FaHeart />}
                   />
