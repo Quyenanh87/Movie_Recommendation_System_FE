@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     const trimmed = userId.trim();
@@ -19,6 +21,7 @@ export default function LoginPage() {
 
       if (data.exists) {
         localStorage.setItem("user_id", trimmed);
+        login();
         navigate("/");
       } else {
         setError("❌ User ID không tồn tại. Vui lòng kiểm tra lại.");
