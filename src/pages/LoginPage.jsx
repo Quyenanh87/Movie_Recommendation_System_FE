@@ -33,9 +33,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm">
-        <h1 className="text-xl font-semibold mb-4 text-center">🔐 Đăng nhập</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="bg-gray-900 p-8 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
+        <h1 className="text-2xl font-bold mb-6 text-white text-center flex items-center justify-center gap-2">
+          <span role="img" aria-label="lock">🔐</span> Đăng nhập Movie Recommender
+        </h1>
 
         <input
           type="number"
@@ -44,17 +46,17 @@ export default function LoginPage() {
             setUserId(e.target.value);
             setError("");
           }}
-          placeholder="Nhập User ID"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md mb-2"
+          placeholder="🎟️ Nhập User ID của bạn"
+          className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 mb-3"
         />
 
-        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
         <button
           onClick={handleLogin}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded-lg transition duration-200"
         >
-          Đăng nhập
+          🎬 Đăng nhập
         </button>
       </div>
     </div>
